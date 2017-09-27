@@ -1,0 +1,141 @@
+<!--
+    This file contains the layout and logic for joining a game and/or creating/updating a player.
+-->
+<script type="text/javascript">
+    // This script should be included in all content pages!
+    // REMEMBER TO CHANGE THE CONTENT NAME!
+    var contentName = "play";
+    console.debug("--- BEGIN (" + contentName + ") ---");
+    setCookie("action", contentName);
+</script>
+<!--  -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="jumbotron"><h2 id="questionTxt">Question text goes here, and might be quite long. Right?</h2></div>
+        <div id="alternativesDiv" style="text-align:center" class="row">
+            <div class="col-md-2">
+                <div class="panel-group">
+                    <div class="panel panel-danger">
+                        <div class="panel-heading">1</div>
+                        <div id="alt1body" class="panel-body">Panel Content</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel-group">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">2</div>
+                        <div id="alt2body" class="panel-body">Panel Content</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel-group">
+                    <div class="panel panel-success">
+                        <div class="panel-heading">3</div>
+                        <div id="alt3body" class="panel-body">Panel Content</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel-group">
+                    <div class="panel panel-warning">
+                        <div class="panel-heading">4</div>
+                        <div id="alt4body" class="panel-body">Panel Content</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="scoreboardDiv" class="col-md-4">
+        <!-- Scoreboard loaded through jQuery -->
+    </div>
+</div>
+
+<script type="text/javascript">
+    var qID = getCookie("quizz");
+    var lginterval = setInterval(loadGame(), 900); //Start reloading every 900 ms
+
+    function loadGame() {
+        console.debug("Loading game " + qID);
+        $.get("rest/quizzgames/" + qID, function (data, status) {
+            switch (data.status) {
+                case "later":
+                    $('#questionTxt').text("The quiz won't start for a while yet. Come back later...");
+                    $('#alternativesDiv').empty();
+                    break;
+
+                case "soon":
+                    $('#questionTxt').text("The quiz will start within two minutes... Get ready!");
+                    $('#alternativesDiv').empty();
+                    break;
+
+                case "active":
+                    if (data.currentQuestion != null && data.currentQuestion.questionText() != "") {
+                        // Display the question and the alternatives
+                        $('#questionDiv').text(data.currentQuestion.questionText())
+                        for (i = 0; i < data.currentQuestion.alternatives.length; i++) {
+                            var newAlternative = '';
+
+                            newAlternative += '<div class="col-md-2">';
+                            newAlternative += '    <div class="panel-group">';
+                            newAlternative += '        <div class="panel panel-' + getLook(i % 4) + '">';
+                            newAlternative += '            <div class="panel-heading">1</div>';
+                            newAlternative += '            <div id="alt_' + i + '" class="answerbutton panel-body" onClick="selectAlternative(' + i + ')">' + data.currentQuestion.alternatives[i] + '</div>';
+                            newAlternative += '        </div>';
+                            newAlternative += '    </div>';
+                            newAlternative += '</div>';
+                            $('#alternativesDiv').append(newAlternative);
+                        }
+                    } else {
+                        //Quiz is missing critical data!
+                        $('#questionTxt').text("Uhm... There seems to be something wrong!");
+                        $('#alternativesDiv').empty();
+                    }
+                    break;
+
+                case "done":
+                    $('#questionTxt').text("Awww! This quiz is over...");
+                    $('#alternativesDiv').empty();
+                    break;
+
+                case "error":
+                case null:
+                    $('#questionTxt').text("Uh oh! Something went very wrong somewhere!");
+                    $('#alternativesDiv').empty();
+                    break;
+            }
+        });
+    }
+
+    function selectAlternative(alt) {
+        $.ajax({
+            url: 'rest/answers',
+            type: 'POST',
+            data: JSON.stringify({
+                id: qID,
+                answer: alt
+            }),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (result) {
+                //TODO: Some fancy animation or cheesy text while waiting for the next question.
+            }
+        });
+    }
+
+    function getLook(lNum) {
+        switch (lNum) {
+            case 0:
+                return 'info';
+            case 1:
+                return 'warning';
+            case 2:
+                return 'success';
+            case 3:
+                return 'danger';
+        };
+        return 'unknown';
+    }
+  
+</script>

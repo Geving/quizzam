@@ -1,0 +1,47 @@
+<script type="text/javascript">
+    // This script should be included in all content pages!
+    // REMEMBER TO CHANGE THE CONTENT NAME!
+    var contentName = "intro";
+    console.debug("--- BEGIN (" + contentName + ") ---");
+    setCookie("action", contentName);
+</script>
+
+<div class="jumbotron">
+    <div class="container">
+        <h1>QuiZZam!</h1>
+        <p>We swear, this is NOT a blatant ripoff of Kahoot!</p>
+        <p>
+            <a id="newQuiz" class="btn btn-primary btn-lg">Create a new quiz</a>
+            <a id="joinQuiz" class="btn btn-primary btn-lg">Join a quiz</a>
+        </p>
+    </div>
+</div>
+
+<script type="text/javascript">
+    // This script contains functions spesific to this content page
+    $('#newQuiz').click(function() {
+        $('#content').load('_create.html');
+    });
+
+    $('#joinQuiz').click(function() {
+        $('#content').load('_join.html');
+    });
+
+    // Because this is the first page that is loaded, this is a good place to put this code.
+    // There is no reason to run it more than once...
+
+    // Add questions if this is a new session (this is to simulate pre-stored data)
+    $(function (){
+        if(getCookie('prepopulated')!='yes') {
+            $.getScript("Content/prepopulate.js")
+                .done(function (script, textStatus) {
+                    console.log(textStatus);
+                    setCookie('prepopulated','yes');
+                })
+                .fail(function (jqxhr, settings, exception) {
+                    console.log(exception);
+                });
+        }
+    })
+
+</script>

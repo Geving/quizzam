@@ -1,0 +1,73 @@
+<!--
+    This file contains the layout and logic for joining a game and/or creating/updating a player.
+-->
+<script type="text/javascript">
+    // This script should be included in all content pages!
+    // REMEMBER TO CHANGE THE CONTENT NAME!
+    var contentName = "join";
+    console.debug("--- BEGIN (" + contentName + ") ---");
+    setCookie("action", contentName);
+</script>
+<!--  -->
+<div class="row">
+    <div id="divPlayer" class="col-md-4">
+
+    </div>
+    <div id="divJoin" class="col-md-8">
+        <h3>Available games</h3>
+        <table id="gamesTable" class="table">
+            <thead>
+                <tr>
+                    <th>Game</th>
+                    <th><!-- Remove --></th>
+                    <th>Begins</th>
+                </tr>
+            </thead>
+            <!-- Dynamically added stuff begins here -->
+            <tbody id="gamesTableBody"></tbody>
+            <!-- Dynamically added stuff ends here -->
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    //Load player data
+    $(function () {
+        $('#divPlayer').load('_player.html');
+    })
+
+    ////Load available games
+    loadGames();
+    var lginterval = setInterval(loadGames, 2000); //Start reloading every n ms
+
+
+    function loadGames() {
+        console.debug("Loading QuizzGames...");
+        $.get("rest/quizzgames/", function (data, status) {
+            for (i = 0; i < data.length; i++) {
+                var qid = data[i].id;
+                var thisRow = '<tr id="row_' + qid + '">';
+                thisRow += '<td>' + data[i].title + '</td>';
+                thisRow += '<td>';
+                thisRow += '<button id="q' + qid + '_play" class="playGame btn btn-success btn-xs" name="SelectGame"  qid="' + qid + '" value="' + i + '"><i class="fa fa-play fa-fw" qid="' + qid + '"></i></button>';
+                thisRow += '</td>';
+                thisRow += '<td>';
+                thisRow += new Date(data[i].timeBegin).toString();
+                thisRow += '</td>';
+                thisRow += '</tr>';
+                $('#row_' + qid).remove();
+                $('#gamesTable > tbody:last-child').append(thisRow);
+            }
+      
+            // Select a game
+            $("Button.playGame").click(function () {
+                var qid = $(this).attr('qid');
+                //setCookie("action", "play");
+                setCookie("quizz", qid);
+                clearInterval(lginterval);
+                $('#content').load('_play.html');
+            });
+        })
+    };
+</script>

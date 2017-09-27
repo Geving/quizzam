@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <title>Oving 5 - Update</title>
+</head>
+<body>
+<form>
+    <input id="newValue" type="text" value="My value!"><input id="update" type="submit"/><br>
+</form>
+<div id="result"></div>
+<script type="text/javascript">
+    // Oppdater eksisterende rest-ressurs under '/kunder/'
+    $("#update").click(function () {
+        $('#result').html("Updating...");
+        $('#result').fadeIn();
+        $.ajax({
+            url: 'rest/kunder',
+            type: 'PUT',
+            data: JSON.stringify({
+                id: "Oving5",
+                navn: $("#newValue").val(),
+            }),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (result) {
+                $('#result').html("Success!");
+                $('#result').fadeOut(1000);
+            }
+        });
+    });
+</script>
+</body>
+</html>

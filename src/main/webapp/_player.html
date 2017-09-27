@@ -1,0 +1,142 @@
+<!--
+    This file contains the layout and logic for creating/updating a player.
+-->
+<script type="text/javascript">
+    // This script should be included in all content pages!
+    // REMEMBER TO CHANGE THE CONTENT NAME!
+    var contentName = "player";
+    console.debug("--- BEGIN (" + contentName + ") ---");
+    //setCookie("action", contentName);
+</script>
+
+
+<!--<h2>Player setup</h2>-->
+<div class="row">
+    <div id="player-main" class="col-md-12">
+        <h3>Player</h3>
+        <div>
+            <div style="display:inline;float:left">
+                <span id="chart-player" class="chart chart-single" data-percent="0">
+                    <span class="percent percent-single"></span>
+                </span>
+            </div>
+            <div class="player-info">
+                <input type="hidden" id="pID" />
+                <table class="player-table">
+                    <!--<tr>
+                        <td class="tdDesc">ID:</td>
+                        <td class="tdVal" id="pID"></td>
+                    </tr>-->
+                    <tr>
+                        <td class="tdDesc">Nick:</td>
+                        <td class="tdVal" id="pNick"></td>
+                    </tr>
+                    <tr>
+                        <td class="tdDesc">Score:</td>
+                        <td class="tdVal" id="pScore"></td>
+                    </tr>
+                    <tr>
+                        <td class="tdDesc">Games played:</td>
+                        <td class="tdVal" id="pPlayed"></td>
+                    </tr>
+                    <tr>
+                        <td class="tdDesc">Games won:</td>
+                        <td class="tdVal" id="pWon"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    // Pie chart
+    $(function () {
+        console.debug("Pie!");
+        $('#chart-player').easyPieChart({
+            barColor: '#03A9F4',
+            easing: 'easeOutSine',
+            lineCap: 'butt',
+            trackColor: '#f2f2f2',
+            scaleColor: false,
+            scaleLength: 5,
+            size: 180,
+            lineWidth: 6,
+            onStep: function (from, to, percent) {
+                $(this.el).find('.percent').text(Math.round(percent));
+            }
+        });
+    })
+
+
+    // Check cookie for player ID
+    var playerID = getCookie("playerID");
+
+    $(function () {
+        console.debug("Main");
+        if (playerID != null && playerID != "") {
+            getPlayer(playerID);
+        } else {
+            console.debug("No player data found.");
+            playerID=uuidv4();
+            $("#pID").val(playerID);
+            $("#pNick").val(promptForNick())
+            setPlayer($("#pID").text(), $("#pNick").text());
+            setCookie("playerID", playerID);
+            getPlayer(playerID);
+        }
+    })
+
+    function promptForNick() {
+        // TODO: Make this a modal instead!
+        var txt;
+        var person = prompt("Please enter your nickname:", "");
+        if (person == null || person == "") {
+            person = "Bullfrog_" + (Math.floor(Math.random() * 999) + 100);
+        }
+        return person;
+    }
+
+    function setPlayer(id, nick) {
+        $.ajax({
+            url: 'rest/players',
+            type: 'POST',
+            data: JSON.stringify({
+                id: $("#pID").val(),
+                nick: $("#pNick").val()
+            }),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (result) {
+                console.debug("Player info saved!");
+            }
+        });
+    }
+
+    function getPlayer(id) {
+        console.debug("Getting player info");
+        $.get("rest/players/" + id, function (data, status) {
+            $("#pID").val(data.id);
+            if (data.nick == null) {
+                $("#pNick").text(promptForNick())
+            } else {
+                $("#pNick").text(data.nick);
+            }
+            $("#pScore").text(data.score);
+            $("#pPlayed").text(data.totalGames);
+            $("#pWon").text(data.totalWins);
+
+            var percentageWon = 0;
+            if(data.totalGames > 0) {
+                percentageWon = data.totalWon/data.totalGames;
+            }
+            console.debug("Won: " + percentageWon + "%");
+            $('#chart-player').data('easyPieChart').update(percentageWon);
+        })
+    }
+
+  
+
+</script>

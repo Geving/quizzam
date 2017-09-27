@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+Visning:
+
+Lag en enkel html-side med et div-element uten innhold.
+Registrer en timer som kjører en callback hvert sekund (se http://www.w3schools.com/js/js_timing.asp).
+Denne funksjonen skal hente en tekstbeskjed fra tjeneren via en jQuery $.get()-metode.
+Oppdater deretter div'en med beskjeden ($(selector).html(message);)
+
+function(data, status){
+        alert("Data: " + data + "\nStatus: " + status);
+    });
+
+
+-->
+<head>
+    <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <title>Oving 5 - Display</title>
+</head>
+<body>
+<div id="showMyValue"></div>
+<script type="text/javascript">
+    var myVar = setInterval(myTimer, 1000);
+    function myTimer() {
+        $.get("rest/kunder/Oving5",function (data, status){
+            $('#showMyValue').html(data.navn);
+        });
+    }
+</script>
+</body>
+</html>
+

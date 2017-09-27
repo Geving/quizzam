@@ -1,0 +1,430 @@
+<!--
+This file contains the layout and logic for creating a new QuizzGame.
+There are two main components to this;
+    * Creating and adding questions
+    * Creating the QuizzGame itself
+-->
+<script type="text/javascript">
+    // This script should be included in all content pages!
+    // REMEMBER TO CHANGE THE CONTENT NAME!
+    var contentName = "create";
+    console.debug("--- BEGIN (" + contentName + ") ---");
+    setCookie("action", contentName);
+</script>
+
+<div style="display:block; margin-bottom:75px;">
+    <div style="display:inline; float:left;"><h2>New quizz</h2></div>
+    <div style="display:inline; float:right"><button id="saveQuizzGame" type="button" class="btn btn-default btn-lg ">Save Quizz</button></div>
+</div>
+<div style="inline-block"></div>
+
+<div class="row">
+    <div id="newQuizzGameDiv" class="col-md-4">
+        <h3>Quizz info</h3>
+        <!-- Data entry for creating a new QuizzGame -->
+        <form id="newQuizzGameForm">
+            <input type="hidden" id="newQuizzGameID" />
+            <div class="form-group">
+                <label class="col-md-4">Title:</label>
+                <div class="col-md-8">
+                    <input id="newQuizzGameTitle" type="text" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-4">Start:</label>
+                <div id="datetimepicker1" class="input-append date col-md-8">
+                    <input id="newQuizzGameTimeBegin" type="datetime" data-format="yyyy-MM-dd hh:mm:ss") class="form-control" />
+                    <span class="add-on">
+                        <i class="fa fa-clock-o"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-4">Players:</label>
+                <div class="col-md-1"></div>
+                <div class="col-md-3">
+                    <input id="newQuizzGameMinPlayers" type="number" class="form-control" min="1" max="10" value="1" />
+                </div>
+                <div class="col-md-1">to</div>
+                <div class="col-md-3">
+                    <input id="newQuizzGameMaxPlayers" type="number" class="form-control" min="1" max="10" value="4"/>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="selectedQuestionsDiv" class="col-md-8">
+        <h3>Selected questions</h3>
+        <!-- A table with the questions that the user has added -->     
+        <table id="selectedQuestionsTable" class="table">
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th><!-- Remove --></th>
+                </tr>
+            </thead>
+            <!-- Dynamically added stuff begins here -->
+            <tbody id="selectedQuestionsTableBody"></tbody>
+            <!-- Dynamically added stuff ends here -->
+        </table>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div id="storedQuestionsDiv" class="col-md-12" style="margin-bottom: 70px;">
+        <!-- A way to display/select from all available known questions -->
+        <h3>Available questions <button id="showNewQuestionModal" type="button" class="btn btn-success btn-sm">New question</button></h3>
+        <table id="questionsTable" class="table">
+            <thead>
+            <tr>
+                <th>Add</th>
+                <th style="width:80px;">Edit / Del</th>
+                <th>Question</th>
+                <!--<th>Alternative&nbsp;1</th>
+                <th>Alternative&nbsp;2</th>
+                -->
+            </tr>
+            </thead>
+            <!-- Dynamically added stuff begins here -->
+            <tbody id="storedQuestionsTableBody">
+            </tbody>
+            <!-- Dynamically added stuff ends here -->
+        </table>
+    </div>
+</div> <!-- All questions table -->
+
+<!-- Modal -->
+<div id="newQuestionModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">New question</h4>
+            </div>
+
+            <form id="newQuestionForm" class="form-horizontal" role="form">
+
+                <div class="modal-body">
+
+                    <input id="newQuestionID" type="hidden" />
+                    <div class="form-group">
+                        <label class="col-md-2">Question:</label>
+                        <div class="col-md-10">
+                            <input id="newQuestionQuestionText" type="text" class="form-control" />
+                        </div>
+                    </div>
+                    <hr />
+                    <div id="answers">
+                    </div>
+                    <hr />
+                    <div class="form-group">
+                        <label class="col-md-2">Solution:</label>
+                        <div class="col-md-3">
+                            <input id="newQuestionSolution" type="number" min="1" max="2" value="1" class="form-control" style="width:33%;" />
+                        </div>
+                        <div class="col-md-7" style="text-align:right;">
+                            <button id="prepareNewAlternative" class="btn btn-default">Add alternative</button>
+                        </div>
+                        <!--<div class="col-md-8 text-right">
+                    <input id="newQuestionAdd" type="submit" class="btn btn-default" value="Save" />
+                </div>-->
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-2">Duration:</label>
+                        <div class="col-md-3">
+                            <input id="newQuestionSecondsAllotted" type="number" max="60" min="3" class="form-control" value="10" style="display:inline; width:33%;" /> seconds
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+                    <input id="newQuestionAdd" type="submit" class="btn btn-default" value="Save" data-dismiss="modal" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // At page load, we need to populate storedQuestionsDiv
+    // Use a table, and create the rows at runtime
+    $(document).ready(function () {
+        console.debug("Assigning GUID to ID fields...")
+        $('#newQuizzGameID').val(uuidv4());
+        $('#newQuestionID').val(uuidv4());
+        loadQuestions();
+    });
+
+    $(function () {
+        $('#datetimepicker1').datetimepicker({
+            language: 'nb-NO'
+        });
+    });
+
+    function loadQuestions() {
+        console.debug("Loading questions...");
+        $.get("rest/questions/", function (data, status) {
+            for (i = 0; i < data.length; i++) {
+                var qid = data[i].id;
+                var thisRow = '<tr id="row_' + qid + '">';
+                thisRow += '<td><button id="q' + qid + '_select" class="selectQuestion btn btn-success btn-xs" name="SelectQuestion" qid="' + qid + '" value="' + i + '"><i class="fa fa-plus fa-fw" qid="' + qid + '"   ></i></button></td>';
+                thisRow += '<td>';
+                thisRow += '<button id="q' + qid + '_edit" class="editQuestion btn btn-warning btn-xs" name="EditQuestion"  qid="' + qid + '" value="' + i + '"><i class="fa fa-edit fa-fw" qid="' + qid + '"></i></button>&nbsp;';
+                thisRow += '<button id="q' + qid + '_delete" class="delQuestion btn btn-danger btn-xs" name="DeleteQuestion"  qid="' + qid + '" value="' + i + '"><i class="fa fa-times fa-fw" qid="' + qid + '"></i></button>';
+                thisRow += '</td>';
+
+                thisRow += '<td id="q' + data[i].id + '_questionText">' + data[i].questionText + '</td>';
+                
+                for (j = 0; j < data[i].alternatives.length; j++) {
+                    thisRow += '<td id="q' + data[i].id + '_Alternative_' + j + '">' + data[i].alternatives[j] + '</td>';
+                }
+
+                
+                thisRow += '</tr>';
+                $('#questionsTable > tbody:last-child').append(thisRow);
+            }
+
+            // Edit a question
+            $('Button.editQuestion').click(function () {
+                $.get("rest/questions/" + $(this).attr('qID'), function (data, status) {
+                    $("#newQuestionID").val(data.id); //Generate a new ID
+                    $("#newQuestionQuestionText").val(data.questionText), //Empty the fields
+                    $("#newQuestionAlt1").val(data.alt1Text),
+                    $("#newQuestionAlt2").val(data.alt2Text),
+                    $("#newQuestionAlt3").val(data.alt3Text),
+                    $("#newQuestionAlt4").val(data.alt4Text),
+                    $("#newQuestionSolution").val(data.solution)
+                    $("#newQuestionModal").modal('show'); //Show the modal
+                })
+            });
+
+            // Delete a question
+            $("Button.delQuestion").click(function () {
+                var qid = $(this).attr('qid');  
+                $.ajax({
+                    url: 'rest/questions/' + qid,
+                    type: 'DELETE',
+                    complete: function (result) { // For some reason, jQuery doesn't treat 204 as a success. Using "complete" instead.
+                        if (result.statusText == 'No Content') { 
+                            $('#row_' + qid).remove();
+                        } 
+                    }
+                });
+            });
+
+            // Select a question
+            $("Button.selectQuestion").click(function () {
+                if ($(this).hasClass('disabled')) { return };
+                var qid = $(this).attr('qid');
+                var questionText = $('#q' + qid + '_questionText').text();
+                $(this).addClass('disabled');
+                var thisRow = '<tr id="selectedRow_' + qid + '" data-qid="' + qid + '">';
+                thisRow += '<td>' + questionText + '</td>';
+                thisRow += '<td>';
+                thisRow += '<button id="q' + i + '_unselect" class="unselectQuestion btn btn-danger btn-xs" name="unselectQuestion"  qid="' + qid + '" value="' + i + '"><i class="fa fa-minus fa-fw" qid="' + qid + '"></i></button>';
+                thisRow += '</td>';
+                thisRow += '</tr>';
+                $('#selectedQuestionsTable > tbody:last-child').append(thisRow);
+
+                // We also need to have an unselect declared AFTER it's been created...
+                $("Button.unselectQuestion").click(function () {
+                    var qid = $(this).attr('qid');
+                    $('#q' + qid + '_select').removeClass('disabled');
+                    $('#selectedRow_' + qid).remove();
+                });
+            });
+        })
+    };
+    
+    //Showing the new/edit modal
+    $('#showNewQuestionModal').click(function () {
+        $("#newQuestionID").val(uuidv4()); //Generate a new ID
+        $("#newQuestionQuestionText").val(''), //Empty the fields
+        $('#answers').empty();
+        $("#newQuestionSolution").val(1)
+        $("#newQuestionModal").modal('show'); //Show the modal
+    })
+
+    //// Clear alt 1 or alt 2    
+    //$('.altClearing').click(function () {
+    //    console.debug("Clearing " + '#newQuestionAlt_' + $(this).val());
+    //    $('#newQuestionAlt_' + $(this).val()).val('');
+    //})
+    
+    function fetchQuestion(qID) {
+        $.get("rest/questions/" + qID, function (data, status) {
+            return data;
+        });
+    };
+
+
+    var altCounter = 0;
+
+    // Add another alternative to the modal
+    $('#prepareNewAlternative').click(function () {
+        addAlternative();
+    });
+
+    function addAlternative() {
+        altCounter++;
+        var altID = uuidv4();
+        var thisGroup = "";
+        thisGroup += '<div id="altGroup_' + altID + '" class="form-group">';
+        thisGroup += '  <input type="hidden" id="alt_' + altID + '" />';
+        thisGroup += '  <div class="col-md-1">';
+        thisGroup += '    <input id="newQuestionRadio_' + altID + '" type="radio" name="newQuestionSolution" value="' + altID + '" class="solutionRadio">';
+        thisGroup += '  </div>';
+        //thisGroup += '  <label id="label_' + altID + '" class="col-md-2">Alternative ' + altCounter + ':</label>';
+        thisGroup += '  <div class="col-md-10">';
+        thisGroup += '    <input id="newQuestionAlt_' + altID + '" type="text" class="form-control alternative" />';
+        thisGroup += '  </div>';
+        thisGroup += '  <div class="col-md-1"><button id="removeAlt_' + altID + '" value="' + altID + '"  class="btn btn-danger altRemoval"><i class="fa fa-minus fa-fw"></i></button></div>';
+        thisGroup += '</div>';
+        $('#answers').append(thisGroup);
+
+        // Adds removal funtionality to the newly created button(s)
+        $('.altRemoval').click(function () {
+            console.debug("Removing " + '#newQuestionAlt_' + $(this).val());
+            $('#altGroup_' + $(this).val()).remove();
+        })
+    };
+
+    //Saving the question data
+    $("#newQuestionAdd").click(function () {
+
+        var alternatives = []; // Stores the alternatives to the new question
+        $(".alternative").each(function () {
+            alternatives.push($(this).val());
+        });
+
+        $.ajax({
+            url: 'rest/questions',
+            type: 'POST',
+            data: JSON.stringify({
+                id: $("#newQuestionID").val(),
+                questionText: $("#newQuestionQuestionText").val(),
+                alternatives: alternatives,
+                solution: $("input[name='newQuestionSolution']:checked").val(),
+                secondsAllotted: $("#newQuestionSecondsAllotted").val()
+            }),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (result) {
+                $('#storedQuestionsTableBody').empty();
+                loadQuestions();
+            }
+        });
+    });
+    
+    $("#saveQuizzGame").click(function () {
+        var myQuestions = []; // An array with my question IDs.
+        
+        $('#selectedQuestionsTable > tbody  > tr').each(function () {
+            var qID = $(this).data('qid');
+            myQuestions.push(qID);
+        });    
+
+
+
+
+        //var singleQuestion = JSON.stringify({
+        //    id: $("#newQuizzGameID").val(),
+        //    questionText: $("#newQuizzGameTimeBegin").val(),
+        //    : $("#newQuizzGameMinPlayers").val(),
+        //    maxPlayers: $("#newQuizzGameMaxPlayers").val()
+        //})
+
+        $.ajax({
+            url: 'rest/quizzgames',
+            type: 'POST',
+            data: JSON.stringify({
+                id: $("#newQuizzGameID").val(),
+                title: $("#newQuizzGameTitle").val(),
+                timeBegin: $("#newQuizzGameTimeBegin").val(), //.replace(" ","T") + ".000+0100",// '2001-07-04T12:08:56.235-0700',  //$("#newQuizzGameTimeBegin").val(),
+                minPlayers: $("#newQuizzGameMinPlayers").val(),
+                maxPlayers: $("#newQuizzGameMaxPlayers").val(),
+                questions: myQuestions
+        }),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (result) {
+                console.debug("Saved!");
+                console.debug("Loading default...");
+                document.cookie = "action=intro";
+                $('#content').load('_intro.html');
+                showMsgBox("Success!", "Your game has been created, and is ready to play!", 2500);
+            }
+        });
+    });
+
+    // And a final "Save"-button to complete everything.
+
+    /*
+    
+    function addAlternativeObj() {
+        // This might be technically more correct, but it's extremely hard to read!
+        altCounter++;
+        var altID = uuidv4();
+        var formGroup = $('<div/>',
+            {
+                id: 'altGroup_' + altID,
+                class: 'form-group'
+            });
+        var altLabel = $('<label/>',
+            {
+                id: 'label_' + altID,
+                class: 'col-md-2',
+                text: 'Alternative ' + altCounter
+            });
+        var inpDivA = $('<div/>',
+            {
+                id: 'inpDivA_' + altID,
+                class: 'col-md-9'
+            });
+        var inpDivB = $('<div/>',
+            {
+                id: 'inpDivB_' + altID,
+                class: 'col-md-1'
+            });
+        var varInput = $('<input/>',
+            {
+                id: 'newQuestionAlt_' + altID,
+                class: 'form-control',
+                type: 'text'
+            });
+        var icon = $('<i/>',
+            {
+                id: 'icon_' + altID,
+                class: 'fa fa-minus fa-fw'
+            });
+        var removeButton = $('<button/>',
+          {
+              id: 'removeAlt_' + altID,
+              class: 'btn btn-danger altRemoval',
+              value: altID
+          });
+        $('#answers').append(formGroup);
+        $('#altGroup_' + altID).append(altLabel);
+        $('#altGroup_' + altID).append(inpDivA);
+        $('#inpDivA_' + altID).append(varInput);
+        $('#altGroup_' + altID).append(inpDivB);
+        $('#inpDivB_' + altID).append(removeButton);
+        $('#removeAlt_' + altID).append(icon);
+
+        // Adds removal funtionality to the newly created button(s)
+        $('.altRemoval').click(function () {
+            console.debug("Removing " + '#newQuestionAlt_' + $(this).val());
+            $('#altGroup_' + $(this).val()).remove();
+        })
+    }
+
+    */
+
+
+</script>
