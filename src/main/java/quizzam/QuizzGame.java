@@ -1,7 +1,6 @@
 package quizzam;
 
-import java.util.Date;
-import java.util.List;
+import java.util.ArrayList;
 
 public class QuizzGame {
     private String ID;
@@ -11,36 +10,17 @@ public class QuizzGame {
     private int secsPrQuestion;
     private int minPlayers;
     private int maxPlayers;
-    //private List<Question> questions;
     private String[] questions;
-    private List<Player> players;
+    private ArrayList<Player> players;
     private Scoreboard scoreboard;
     private Question currentQuestion;
     private int remainingTime;
     private String status;
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Question getCurrentQuestion() {
-        return currentQuestion;
-    }
-
-    public void setCurrentQuestion(Question currentQuestion) {
-        this.currentQuestion = currentQuestion;
-    }
-
-    public int getRemainingTime() {
-        return remainingTime;
-    }
-
-    public void setRemainingTime(int remainingTime) {
-        this.remainingTime = remainingTime;
+    public QuizzGame() {
+        this.players = new ArrayList<Player>();
+        this.scoreboard = new Scoreboard();
+        //this.scoreboard.resizeScoreboard(this.questions.length);
     }
 
     public String getID() {
@@ -99,15 +79,6 @@ public class QuizzGame {
         this.maxPlayers = maxPlayers;
     }
 
-//    public List<Question> getQuestions() {
-//        return questions;
-//    }
-//
-//    public void setQuestions(List<Question> questions) {
-//        this.questions = questions;
-//    }
-
-
     public String[] getQuestions() {
         return questions;
     }
@@ -116,11 +87,11 @@ public class QuizzGame {
         this.questions = questions;
     }
 
-    public List<Player> getPlayers() {
+    public ArrayList<Player> getPlayers() {
         return players;
     }
 
-    public void setPlayers(List<Player> players) {
+    public void setPlayers(ArrayList<Player> players) {
         this.players = players;
     }
 
@@ -131,4 +102,42 @@ public class QuizzGame {
     public void setScoreboard(Scoreboard scoreboard) {
         this.scoreboard = scoreboard;
     }
+
+    public Question getCurrentQuestion() {
+        return currentQuestion;
+    }
+
+    public void setCurrentQuestion(Question currentQuestion) {
+        this.currentQuestion = currentQuestion;
+    }
+
+    public int getRemainingTime() {
+        return remainingTime;
+    }
+
+    public void setRemainingTime(int remainingTime) {
+        this.remainingTime = remainingTime;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void addSinglePlayer(Player player){
+        System.out.println("----------------------------------------------");
+        System.out.println(player.toString());
+        System.out.println(player.getID());
+        System.out.println(player.getNick());
+        System.out.println("==============================================");
+        System.out.println(getPlayers());
+        System.out.println(this.players.isEmpty());
+        System.out.println(this.players.size());
+        System.out.println("----------------------------------------------");
+        this.players.add(player);
+    }
+
 }

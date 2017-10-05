@@ -62,11 +62,29 @@
       
             // Select a game
             $("Button.playGame").click(function () {
-                var qid = $(this).attr('qid');
-                //setCookie("action", "play");
-                setCookie("quizz", qid);
-                clearInterval(lginterval);
-                $('#content').load('_play.html');
+                var qID = $(this).attr('qid');
+                var playerID = getCookie("playerID");
+
+                $.ajax({
+                    url: 'rest/quizzgames?quizzGameID=' + qID + '&playerID=' + playerID,
+                    type: 'PUT',
+                    data: JSON.stringify({
+                        quizzGameID: qID,
+                        playerID: playerID
+                    }),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function (result) {
+                        setCookie("quizz", qid);
+                        clearInterval(lginterval);
+                        $('#content').load('_play.html');
+                        return;
+                    },
+                    error: function (result) {
+                        showMsgBox("Error!", "Couldn't join game! (" + result + ")", 5000);
+                    }
+                });
+                            
             });
         })
     };

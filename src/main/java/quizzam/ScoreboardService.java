@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-@Path("/scorebards/")
+@Path("/scoreboards/")
 public class ScoreboardService {
     private static Map<String,Scoreboard> scoreboards = new HashMap<>();
 
@@ -28,7 +28,7 @@ public class ScoreboardService {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public void addScoreboard(Scoreboard scoreboard) {
-        Scoreboard existingScoreboard = scoreboards.get(scoreboard.getID());
+        //Scoreboard existingScoreboard = scoreboards.get(scoreboard.getID());
         scoreboards.put(scoreboard.getID(), scoreboard);
     }
 
@@ -37,7 +37,8 @@ public class ScoreboardService {
     public void updateScoreboard(Scoreboard scoreboard) {
         Scoreboard returnScoreboard = scoreboards.get(scoreboard.getID());
         if(returnScoreboard==null){
-            throw new NotFoundException();
+            //throw new NotFoundException();
+            addScoreboard(scoreboard);
         }
         scoreboards.put(scoreboard.getID(), scoreboard);
     }
